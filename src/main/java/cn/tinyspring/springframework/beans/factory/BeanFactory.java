@@ -1,4 +1,6 @@
-package cn.tinyspring.springframework;
+package cn.tinyspring.springframework.beans.factory;
+
+import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,12 +13,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * 注册：BeanFactory这个过程就相当于我们把数据存放到 HashMap 中，只不过现在 HashMap 存放的是定义了的 Bean 的对象信息。
  * 获取：最后就是获取对象，Bean 的名字就是key，Spring 容器初始化好 Bean 以后，就可以直接获取了。
  */
-public class BeanFactory {
-    private Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
-    public Object getBean(String name) {
-        return beanDefinitionMap.get(name).getBean();
-    }
-    public void registerBeanDefinition(String name, BeanDefinition beanDefinition) {
-        beanDefinitionMap.put(name, beanDefinition);
-    }
+public interface BeanFactory {
+    /**
+     * 根据bean名称获取bean对象
+     * @param name
+     * @return
+     */
+    Object getBean(String name);
 }
