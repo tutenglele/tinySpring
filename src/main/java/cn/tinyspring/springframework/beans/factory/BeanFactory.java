@@ -20,4 +20,12 @@ public interface BeanFactory {
      * @return
      */
     Object getBean(String name);
+
+    /**
+     * 根据名称和参数，实例化bean，在获取 Bean 时把构造函数的入参信息传递进去了
+     * @param name
+     * @param args
+     * @return
+     */
+    Object getBean(String name, Object... args);
 }
