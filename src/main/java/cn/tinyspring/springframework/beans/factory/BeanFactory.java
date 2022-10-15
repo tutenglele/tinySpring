@@ -28,4 +28,14 @@ public interface BeanFactory {
      * @return
      */
     Object getBean(String name, Object... args);
+
+
+    /**
+     * 新增加了按照类型获取 Bean 的方法
+     * @param name
+     * @param requiredType
+     * @param <T>
+     * @return
+     */
+    <T> T getBean(String name, Class<T> requiredType);
 }
