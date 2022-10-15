@@ -6,6 +6,11 @@
     <bean id="userService" class="cn.tinyspring.springframework.test.bean.UserService">
         <property name="uId" value="111"/>
         <property name="userDao" ref="userDao"/>
+        <property name="company" value="腾讯"/>
+        <property name="location" value="深圳"/>
     </bean>
+
+    <bean class="cn.tinyspring.springframework.test.common.MyBeanFactoryPostProcessor"/>
+    <bean class="cn.tinyspring.springframework.test.common.MyBeanPostProcessor"/>
 
 </beans>
