@@ -5,6 +5,7 @@ import cn.tinyspring.springframework.beans.factory.BeanFactory;
 
 /**
  * 一个自动化处理Bean工厂配置的接口，目前案例工程中还没有做相应的实现，后续逐步完善
+ * 在bean实例后，初始化方法前后执行相应的方法
  */
 public interface AutowireCapableBeanFactory extends BeanFactory {
     /**

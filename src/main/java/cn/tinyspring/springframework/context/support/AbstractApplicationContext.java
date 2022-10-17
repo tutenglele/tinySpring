@@ -55,6 +55,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader i
             beanFactory.addBeanPostProcessor(beanPostProcessor);
         }
     }
+    /*
+    关于注册钩子和关闭的方法实现
+     */
+    @Override
+    public void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
+    }
+
+    @Override
+    public void close() {
+        getBeanFactory().destorySingletons();
+    }
+
     @Override
     public Object getBean(String name) {
         return getBeanFactory().getBean(name);

@@ -18,6 +18,9 @@ import org.w3c.dom.NodeList;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * 读取xml文件实现beanDefinition的注册
+ */
 public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
     public XmlBeanDefinitionReader(BeanDefinitionRegistry registry) {
         super(registry);
@@ -77,6 +80,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
             String id = bean.getAttribute("id");
             String name = bean.getAttribute("name");
             String className = bean.getAttribute("class");
+            //增加对init-method和destory-method的读取
+            String initMethod = bean.getAttribute("init-method");
+            String destoryMethod = bean.getAttribute("destroy-method");
             // 获取 Class，方便获取类中的名称
             Class<?> clazz = Class.forName(className);
             // 优先级 id > name
@@ -86,6 +92,8 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
             }
             // 定义Bean
             BeanDefinition beanDefinition = new BeanDefinition(clazz);
+            beanDefinition.setInitMethodName(initMethod);
+            beanDefinition.setDestroyMethodName(destoryMethod);
             for (int j = 0; j < bean.getChildNodes().getLength(); j++) {
                 if (!(bean.getChildNodes().item(j) instanceof Element)) {
                     continue;

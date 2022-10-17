@@ -1,6 +1,9 @@
 package cn.tinyspring.springframework.test.bean;
 
-public class UserService {
+import cn.tinyspring.springframework.beans.factory.DisposableBean;
+import cn.tinyspring.springframework.beans.factory.InitializingBean;
+
+public class UserService implements InitializingBean, DisposableBean {
     private String uId;
     private UserDao userDao;
     private String company;
@@ -53,5 +56,15 @@ public class UserService {
         final StringBuilder sb = new StringBuilder("");
 //        sb.append("").append(name);
         return sb.toString();
+    }
+
+    @Override
+    public void destory() throws Exception {
+        System.out.println("执行：UserService.destroy");
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("执行：UserService.afterPropertiesSet");
     }
 }
