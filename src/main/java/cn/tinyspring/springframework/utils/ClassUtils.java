@@ -15,4 +15,16 @@ public class ClassUtils {
         }
         return cl;
     }
+
+    /**
+     * 判断类是否通过Cglib方式代理生成
+     * @param clazz
+     * @return
+     */
+    public static boolean isCglibProxyClass(Class<?> clazz) {
+        return clazz != null && isCglibProxyClassName(clazz.getName());
+    }
+    public static boolean isCglibProxyClassName(String className) {
+        return className != null && className.contains("$$");
+    }
 }

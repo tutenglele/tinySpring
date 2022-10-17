@@ -5,8 +5,10 @@ import cn.tinyspring.springframework.beans.factory.DisposableBean;
 import cn.tinyspring.springframework.beans.factory.config.SingletonBeanRegistry;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 实现接口SingletonBeanRegistry
@@ -14,8 +16,8 @@ import java.util.Set;
  */
 public class DefaultSingletonBeanRegistory implements SingletonBeanRegistry {
     protected static final Object NULL_OBJECT = new Object();
-    private Map<String, Object> singletonObjects = new HashMap<>();
-    private final Map<String, DisposableBean> disposableBeans = new HashMap<>();
+    private Map<String, Object> singletonObjects = new ConcurrentHashMap<>();
+    private final Map<String, DisposableBean> disposableBeans = new LinkedHashMap<>();
     @Override
     public Object getSingleton(String beanName) {
         return singletonObjects.get(beanName);
@@ -26,7 +28,8 @@ public class DefaultSingletonBeanRegistory implements SingletonBeanRegistry {
      * @param beanName
      * @param singletonObject
      */
-    protected void addSingleton(String beanName, Object singletonObject) {
+    @Override
+    public void registerSingleton(String beanName, Object singletonObject) {
         singletonObjects.put(beanName, singletonObject);
     }
 

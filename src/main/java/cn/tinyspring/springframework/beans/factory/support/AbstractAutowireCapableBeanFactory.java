@@ -38,7 +38,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         //单例模式和原型模式的区别就在于是否存放到内存中，如果是原型模式那么就不会存放到内存中，每次获取都重新创建对象，另外非 Singleton 类型的 Bean 不需要执行销毁方法。
         //一旦bean初始化，就加载进容器里面，方便下次使用,新增判断单例模式
         if (beanDefinition.isSingleton()) {
-            addSingleton(beanName, bean);
+            registerSingleton(beanName, bean);
         }
         return bean;
     }
@@ -66,6 +66,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             BeanUtil.setFieldValue(bean, name, value);
         }
     }
+
     protected Object createBeanInstance(BeanDefinition beanDefinition, String beanName, Object[] args) {
         Constructor<?> constructorToUse = null;
         Class<?> beanClass = beanDefinition.getBeanClass();

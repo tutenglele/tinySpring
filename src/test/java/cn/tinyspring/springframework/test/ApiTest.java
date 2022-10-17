@@ -15,6 +15,7 @@ import cn.tinyspring.springframework.test.bean.UserDao;
 import cn.tinyspring.springframework.test.bean.UserService;
 import cn.tinyspring.springframework.test.common.MyBeanFactoryPostProcessor;
 import cn.tinyspring.springframework.test.common.MyBeanPostProcessor;
+import cn.tinyspring.springframework.test.event.CustomEvent;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -177,5 +178,12 @@ public class ApiTest {
         // 2. 调用代理方法
         UserService userService = applicationContext.getBean("userService", UserService.class);
         userService.queryUserInfo();
+    }
+
+    @Test
+    public void test_event() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
+        applicationContext.publishEvent(new CustomEvent(applicationContext, 333444L, "done!!"));
+        applicationContext.registerShutdownHook();
     }
 }
