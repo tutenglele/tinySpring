@@ -7,7 +7,7 @@ import cn.tinyspring.springframework.context.ApplicationContextAware;
 
 public class UserService implements InitializingBean, DisposableBean, BeanNameAware, BeanClassLoaderAware, BeanFactoryAware, ApplicationContextAware {
     private String uId;
-    private UserDao userDao;
+    private IUserDao userDao;
     private String company;
     private String location;
     private ApplicationContext applicationContext;
@@ -21,11 +21,11 @@ public class UserService implements InitializingBean, DisposableBean, BeanNameAw
         this.uId = uId;
     }
 
-    public UserDao getUserDao() {
+    public IUserDao getUserDao() {
         return userDao;
     }
 
-    public void setUserDao(UserDao userDao) {
+    public void setUserDao(IUserDao userDao) {
         this.userDao = userDao;
     }
 
@@ -55,12 +55,6 @@ public class UserService implements InitializingBean, DisposableBean, BeanNameAw
         System.out.println("查询用户信息：" + userDao.queryUserName(uId) + location + company);
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("");
-//        sb.append("").append(name);
-        return sb.toString();
-    }
 
     @Override
     public void destory() throws Exception {

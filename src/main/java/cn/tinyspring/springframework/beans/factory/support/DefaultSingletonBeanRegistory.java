@@ -13,6 +13,7 @@ import java.util.Set;
  * 并实现了一个受保护的 addSingleton 方法，这个方法可以被继承此类的其他类调用
  */
 public class DefaultSingletonBeanRegistory implements SingletonBeanRegistry {
+    protected static final Object NULL_OBJECT = new Object();
     private Map<String, Object> singletonObjects = new HashMap<>();
     private final Map<String, DisposableBean> disposableBeans = new HashMap<>();
     @Override

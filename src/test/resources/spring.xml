@@ -3,13 +3,13 @@
 
     <bean id="userDao" class="cn.tinyspring.springframework.test.bean.UserDao" init-method="initDataMethod" destroy-method="destroyDataMethod"/>
 
-    <bean id="userService" class="cn.tinyspring.springframework.test.bean.UserService">
+    <bean id="userService" class="cn.tinyspring.springframework.test.bean.UserService" scope="prototype">
         <property name="uId" value="111"/>
-        <property name="userDao" ref="userDao"/>
+        <property name="userDao" ref="proxyUserDao"/>
         <property name="company" value="腾讯"/>
         <property name="location" value="深圳"/>
     </bean>
-
+    <bean id="proxyUserDao" class="cn.tinyspring.springframework.test.bean.ProxyFactoryBean"/>
     <bean class="cn.tinyspring.springframework.test.common.MyBeanFactoryPostProcessor"/>
     <bean class="cn.tinyspring.springframework.test.common.MyBeanPostProcessor"/>
 
