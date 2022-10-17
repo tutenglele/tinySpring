@@ -5,6 +5,7 @@ import cn.tinyspring.springframework.beans.factory.BeanFactory;
 import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
 import cn.tinyspring.springframework.beans.factory.config.BeanPostProcessor;
 import cn.tinyspring.springframework.beans.factory.config.ConfigurableBeanFactory;
+import cn.tinyspring.springframework.utils.ClassUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
  */
 public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistory implements ConfigurableBeanFactory {
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<BeanPostProcessor>();
+    private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
     /**
      * 对单例 Bean 对象的获取,在获取不到时需要拿到 Bean 的定义做相应 Bean 实例化操作。
@@ -58,5 +60,9 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistory 
     }
     public List<BeanPostProcessor> getBeanPostProcessors() {
         return this.beanPostProcessors;
+    }
+
+    public ClassLoader getBeanClassLoader() {
+        return this.beanClassLoader;
     }
 }
