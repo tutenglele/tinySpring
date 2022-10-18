@@ -7,6 +7,7 @@ import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
 import cn.tinyspring.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import cn.tinyspring.springframework.core.io.DefaultResourceLoader;
 import cn.tinyspring.springframework.core.io.Resource;
+import cn.tinyspring.springframework.utils.StringValueResolver;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -42,19 +43,16 @@ public class PropertyPlaceholderConfigurer implements BeanFactoryPostProcessor {
                     if (!(value instanceof String)) {
                         continue;
                     }
-                    String strVal = (String) value;
-                    StringBuilder builder = new StringBuilder(strVal);
-                    int startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREEIX);
-                    int endIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
-                    if(startIdx != -1 && endIdx != -1 && startIdx < endIdx) {
-                        String propKey = strVal.substring(startIdx + 2, endIdx);
-                        String propVal = properties.getProperty(propKey);
-                        builder.replace(startIdx, endIdx + 1, propVal);
-                        //提取到的配置信息放置到属性配置中
-                        propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), builder.toString()));
-                    }
+
+                    //获取占位符位置
+                    value = resolverPlaceholder((String) value, properties);
+                    propertyValues.addPropertyValue(new PropertyValue(propertyValue.getName(), value));
                 }
             }
+            //向容器中添加字符串解析器，解析Value注解使用
+            StringValueResolver valueResolver = new PlaceholderResolvingStringValueResolver(properties);
+            //把属性值写入到了 AbstractBeanFactory 的 embeddedValueResolvers 中
+            beanFactory.addEmbeddedValueResolver(valueResolver);
         } catch (IOException e) {
             throw new BeansException("Could not load properties", e);
         }
@@ -62,5 +60,32 @@ public class PropertyPlaceholderConfigurer implements BeanFactoryPostProcessor {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    private String resolverPlaceholder(String value, Properties properties) {
+        String strVal = value;
+        StringBuilder builder = new StringBuilder(strVal);
+        int startIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_PREEIX);
+        int endIdx = strVal.indexOf(DEFAULT_PLACEHOLDER_SUFFIX);
+        if(startIdx != -1 && endIdx != -1 && startIdx < endIdx) {
+            String propKey = strVal.substring(startIdx + 2, endIdx);
+            String propVal = properties.getProperty(propKey);
+            builder.replace(startIdx, endIdx + 1, propVal);
+        }
+        return builder.toString();
+    }
+
+    private class PlaceholderResolvingStringValueResolver implements StringValueResolver {
+
+        private final Properties properties;
+
+        public PlaceholderResolvingStringValueResolver(Properties properties) {
+            this.properties = properties;
+        }
+
+        @Override
+        public String resolverStringValue(String strVal) {
+            return PropertyPlaceholderConfigurer.this.resolverPlaceholder(strVal, properties);
+        }
     }
 }

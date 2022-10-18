@@ -2,5 +2,7 @@
 <beans>
 
     <component-scan base-package="cn.tinyspring.springframework.test.bean"/>
-
+    <bean class="cn.tinyspring.springframework.beans.factory.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:token.properties"/>
+    </bean>
 </beans>

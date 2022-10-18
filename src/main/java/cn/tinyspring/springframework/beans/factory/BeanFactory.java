@@ -1,5 +1,6 @@
 package cn.tinyspring.springframework.beans.factory;
 
+import cn.tinyspring.springframework.beans.BeansException;
 import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
 
 import java.util.Map;
@@ -19,7 +20,7 @@ public interface BeanFactory {
      * @param name
      * @return
      */
-    Object getBean(String name);
+    Object getBean(String name) throws BeansException;
 
     /**
      * 根据名称和参数，实例化bean，在获取 Bean 时把构造函数的入参信息传递进去了
@@ -27,8 +28,7 @@ public interface BeanFactory {
      * @param args
      * @return
      */
-    Object getBean(String name, Object... args);
-
+    Object getBean(String name, Object... args) throws BeansException;
 
     /**
      * 新增加了按照类型获取 Bean 的方法
@@ -37,5 +37,7 @@ public interface BeanFactory {
      * @param <T>
      * @return
      */
-    <T> T getBean(String name, Class<T> requiredType);
+    <T> T getBean(String name, Class<T> requiredType) throws BeansException;
+
+    <T> T getBean(Class<T> requiredType) throws BeansException;
 }

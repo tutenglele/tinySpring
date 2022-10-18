@@ -1,7 +1,10 @@
 package cn.tinyspring.springframework.test.bean;
 
+import cn.tinyspring.springframework.stereotype.Component;
+
 import java.util.HashMap;
 
+@Component
 public class UserDao {
     private static HashMap<String, String> map = new HashMap<>();
     public void initDataMethod() {

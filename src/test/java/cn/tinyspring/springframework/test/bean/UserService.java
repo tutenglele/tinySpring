@@ -2,13 +2,20 @@ package cn.tinyspring.springframework.test.bean;
 
 import cn.tinyspring.springframework.beans.BeansException;
 import cn.tinyspring.springframework.beans.factory.*;
+import cn.tinyspring.springframework.beans.factory.annotation.Autowired;
+import cn.tinyspring.springframework.beans.factory.annotation.Qualifier;
+import cn.tinyspring.springframework.beans.factory.annotation.Value;
 import cn.tinyspring.springframework.context.ApplicationContext;
 import cn.tinyspring.springframework.context.ApplicationContextAware;
 import cn.tinyspring.springframework.stereotype.Component;
 
+@Component
 public class UserService implements InitializingBean, DisposableBean, BeanNameAware, BeanClassLoaderAware, BeanFactoryAware, ApplicationContextAware {
+    @Value("${token}")
     private String uId;
-    private IUserDao userDao;
+    @Autowired
+    @Qualifier("userDao")
+    private UserDao userDao;
     private String company;
     private String location;
     private ApplicationContext applicationContext;
@@ -22,11 +29,11 @@ public class UserService implements InitializingBean, DisposableBean, BeanNameAw
         this.uId = uId;
     }
 
-    public IUserDao getUserDao() {
+    public UserDao getUserDao() {
         return userDao;
     }
 
-    public void setUserDao(IUserDao userDao) {
+    public void setUserDao(UserDao userDao) {
         this.userDao = userDao;
     }
 
@@ -53,7 +60,7 @@ public class UserService implements InitializingBean, DisposableBean, BeanNameAw
     public UserService() {
     }
     public void queryUserInfo() {
-        System.out.println("查询用户信息：" + userDao.queryUserName(uId) + location + company);
+        System.out.println("查询用户信息：" + uId + userDao + location + company);
     }
 
 

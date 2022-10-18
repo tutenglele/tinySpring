@@ -22,4 +22,7 @@ public interface ConfigurableListableBeanFactory extends ListableBeanFactory, Au
      * 提前实例化单例对象
      */
     void preInstantiateSingletons();
+
+    @Override
+    void addBeanPostProcessor(BeanPostProcessor beanPostProcessor);
 }

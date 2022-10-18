@@ -276,7 +276,7 @@ public class ApiTest {
     @Test
     public void test_scan() {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-scan.xml");
-        CardService cardService = applicationContext.getBean("cardService", CardService.class);
-        System.out.println(cardService.toString());
+        UserService userService = applicationContext.getBean("userService", UserService.class);
+        userService.queryUserInfo();
     }
 }
