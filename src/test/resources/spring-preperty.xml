@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+
+    <bean class="cn.tinyspring.springframework.beans.factory.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:token.properties"/>
+    </bean>
+
+    <bean id="cardService" class="cn.tinyspring.springframework.test.bean.CardService">
+        <property name="token" value="${token}"/>
+    </bean>
+
+</beans>

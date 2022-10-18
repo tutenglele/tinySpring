@@ -266,4 +266,17 @@ public class ApiTest {
     public void test_test() {
         System.out.println(Object.class);
     }
+
+    @Test
+    public void test_property() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-preperty.xml");
+        CardService cardService = applicationContext.getBean("cardService", CardService.class);
+        System.out.println("测试结果：" + cardService);
+    }
+    @Test
+    public void test_scan() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-scan.xml");
+        CardService cardService = applicationContext.getBean("cardService", CardService.class);
+        System.out.println(cardService.toString());
+    }
 }

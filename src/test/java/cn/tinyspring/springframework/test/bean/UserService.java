@@ -4,6 +4,7 @@ import cn.tinyspring.springframework.beans.BeansException;
 import cn.tinyspring.springframework.beans.factory.*;
 import cn.tinyspring.springframework.context.ApplicationContext;
 import cn.tinyspring.springframework.context.ApplicationContextAware;
+import cn.tinyspring.springframework.stereotype.Component;
 
 public class UserService implements InitializingBean, DisposableBean, BeanNameAware, BeanClassLoaderAware, BeanFactoryAware, ApplicationContextAware {
     private String uId;
