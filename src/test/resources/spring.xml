@@ -16,4 +16,19 @@
     <bean class="cn.tinyspring.springframework.test.common.MyBeanFactoryPostProcessor"/>
     <bean class="cn.tinyspring.springframework.test.common.MyBeanPostProcessor"/>
 
+    <bean id="car" class="cn.tinyspring.springframework.test.bean.Car"/>
+
+    <bean class="cn.tinyspring.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+    <bean id="beforeAdvice" class="cn.tinyspring.springframework.test.bean.CarBeforeAdvice"/>
+
+    <bean id="methodInterceptor" class="cn.tinyspring.springframework.aop.framework.adapter.MethodBeforeAdviceInterceptor">
+        <property name="advice" ref="beforeAdvice"/>
+    </bean>
+
+    <bean id="pointcutAdvisor" class="cn.tinyspring.springframework.aop.aspectj.AspectJExpressionPointcutAdvisor">
+        <property name="expression" value="execution(* cn.tinyspring.springframework.test.bean.ICar.*(..))"/>
+        <property name="advice" ref="methodInterceptor"/>
+    </bean>
+
 </beans>

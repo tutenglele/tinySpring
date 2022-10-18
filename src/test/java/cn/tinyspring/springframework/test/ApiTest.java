@@ -253,4 +253,17 @@ public class ApiTest {
         ICar proxy1 = (ICar) new Cglib2AopProxy(advisedSupport).getProxy();
         System.out.println(proxy1.register("helgfd"));
     }
+
+    @Test
+    public void test_aop() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
+        ICar car = applicationContext.getBean("car", ICar.class);
+//        ((Car) car).queryCar();
+        System.out.println(applicationContext.getBean("car").getClass());
+        System.out.println("测试结果：" + car.queryCar());
+    }
+    @Test
+    public void test_test() {
+        System.out.println(Object.class);
+    }
 }

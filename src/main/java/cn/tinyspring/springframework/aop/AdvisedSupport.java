@@ -5,6 +5,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 
 /**
  * 切面通知信息，用于把代理、拦截、匹配的各项属性包装到一个类中，方便在 Proxy 实现类进行使用。
+ * * 添加proxyTargetClass 用来判断使用cglibhi是jdk的方式
  */
 public class AdvisedSupport {
     /**
@@ -19,6 +20,14 @@ public class AdvisedSupport {
      * 方法匹配器(检查目标方法是否符合通知条件)这个对象由 AspectJExpressionPointcut 提供服务
      */
     private MethodMatcher methodMatcher;
+    /**
+     * 默认使用JDK的方式
+     */
+    private boolean proxyTargetClass = false;
+
+    public boolean isProxyTargetClass() {
+        return proxyTargetClass;
+    }
 
     public TargetSource getTargetSource() {
         return targetSource;
@@ -42,5 +51,9 @@ public class AdvisedSupport {
 
     public void setMethodMatcher(MethodMatcher methodMatcher) {
         this.methodMatcher = methodMatcher;
+    }
+
+    public void setProxyTargetClass(boolean proxyTargetClass) {
+        this.proxyTargetClass = proxyTargetClass;
     }
 }

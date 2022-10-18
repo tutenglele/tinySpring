@@ -6,10 +6,7 @@ import cn.tinyspring.springframework.beans.BeansException;
 import cn.tinyspring.springframework.beans.PropertyValue;
 import cn.tinyspring.springframework.beans.PropertyValues;
 import cn.tinyspring.springframework.beans.factory.*;
-import cn.tinyspring.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
-import cn.tinyspring.springframework.beans.factory.config.BeanPostProcessor;
-import cn.tinyspring.springframework.beans.factory.config.BeanReference;
+import cn.tinyspring.springframework.beans.factory.config.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -17,6 +14,7 @@ import java.lang.reflect.Method;
 /**
  * 实现bean的实例化，暂时只能解决构造函数无参的情况下,解决有参数：1.如何把有参数传递进容器，2.如何实例化有参数的bean
  * 进一步扩展类的属性填充applyPropertyValues，暂时没有处理循环依赖问题
+ * 进一步扩展代理判断，判断是否返回代理
  */
 public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
     private InstantiationStrategy instantiationStrategy = new CglibSubclassingInstantiationStrategy();
@@ -24,6 +22,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     protected Object createBean(String beanName, BeanDefinition beanDefinition, Object... args) throws BeansException {
         Object bean = null;
         try {
+            //判断是否返回代理Bean对象
+            bean = resolveBeforeInstantiation(beanName, beanDefinition);
+            if(null != bean) {
+                return bean;
+            }
             bean = createBeanInstance(beanDefinition, beanName, args);
             //bean实例创造出来后填充属性
             applyPropertyValues(beanName, bean, beanDefinition);
@@ -41,6 +44,26 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             registerSingleton(beanName, bean);
         }
         return bean;
+    }
+
+    protected Object resolveBeforeInstantiation(String beanName, BeanDefinition beanDefinition) {
+        Object bean = applyBeanPostProcessorsBeforeInstantiation(beanDefinition.getBeanClass(), beanDefinition.getDestroyMethodName());
+        if (null != bean) {
+            bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+        }
+        return bean;
+    }
+
+    protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                Object res = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).postProcessorBeforeInstantiation(beanClass, beanName);
+                if (null != res) {
+                    return res;
+                }
+            }
+        }
+        return null;
     }
 
     private void registerDisposableBeanIfNecessary(String beanName, Object bean, BeanDefinition beanDefinition) {
