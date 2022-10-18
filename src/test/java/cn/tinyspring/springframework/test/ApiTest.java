@@ -1,6 +1,13 @@
 package cn.tinyspring.springframework.test;
 
 import cn.hutool.core.io.IoUtil;
+import cn.tinyspring.springframework.aop.AdvisedSupport;
+import cn.tinyspring.springframework.aop.MethodMatcher;
+import cn.tinyspring.springframework.aop.TargetSource;
+import cn.tinyspring.springframework.aop.aspectj.AspectJExpressionPointcut;
+import cn.tinyspring.springframework.aop.framework.Cglib2AopProxy;
+import cn.tinyspring.springframework.aop.framework.JdkDynamicAopProxy;
+import cn.tinyspring.springframework.aop.framework.ReflectiveMethodInvocation;
 import cn.tinyspring.springframework.beans.PropertyValue;
 import cn.tinyspring.springframework.beans.PropertyValues;
 import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
@@ -11,16 +18,20 @@ import cn.tinyspring.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import cn.tinyspring.springframework.context.support.ClassPathXmlApplicationContext;
 import cn.tinyspring.springframework.core.io.DefaultResourceLoader;
 import cn.tinyspring.springframework.core.io.Resource;
-import cn.tinyspring.springframework.test.bean.UserDao;
-import cn.tinyspring.springframework.test.bean.UserService;
+import cn.tinyspring.springframework.test.bean.*;
 import cn.tinyspring.springframework.test.common.MyBeanFactoryPostProcessor;
 import cn.tinyspring.springframework.test.common.MyBeanPostProcessor;
 import cn.tinyspring.springframework.test.event.CustomEvent;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 public class ApiTest {
 //    @Test
@@ -185,5 +196,61 @@ public class ApiTest {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
         applicationContext.publishEvent(new CustomEvent(applicationContext, 333444L, "done!!"));
         applicationContext.registerShutdownHook();
+    }
+
+//    public void test_proxy_method() {
+//        Object targetObj = new UserService();
+//        IUserService proxy = (IUserService) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), targetObj.getClass().getInterfaces(), new InvocationHandler() {
+//            MethodMatcher methodMatcher = (MethodMatcher) new AspectJExpressionPointcut("execution(* cn.tinyspring.springframework.test.bean.IUserService.*(..))");
+//
+//            @Override
+//            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+//                if(methodMatcher.matches(method, targetObj.getClass())) {
+//                    MethodInterceptor methodInterceptor = invocation -> {
+//                      long start = System.currentTimeMillis();
+//                      try {
+//                          return invocation.proceed();
+//                      } finally {
+//                          System.out.println("监控 - Begin By AOP");
+//                          System.out.println("方法名称：" + invocation.getMethod().getName());
+//                          System.out.println("方法耗时：" + (System.currentTimeMillis() - start) + "ms");
+//                          System.out.println("监控 - End\r\n");
+//                      }
+//                    };
+//                    return methodInterceptor.invoke(new ReflectiveMethodInvocation(targetObj, method, args));
+//                }
+//                return method.invoke(targetObj, args);
+//            }
+//        });
+//        String result = proxy.queryUserInfo();
+//        System.out.println("测试结果：" + result);
+//    }
+
+    @Test
+    public void test_aop_expression() throws NoSuchMethodException {
+        AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut("execution(* cn.tinyspring.springframework.test.bean.UserService.*(..))");
+        Class<UserService> clazz = UserService.class;
+        //获取自身声明的方法，getDeclaredMethod
+        Method method = clazz.getDeclaredMethod("queryUserInfo");
+        //获取所有public方法 getMethod
+        Method method1 = clazz.getMethod("queryUserInfo");
+        System.out.println(pointcut.matches(clazz));
+        System.out.println(pointcut.matches(method, clazz));
+        System.out.println(pointcut.matches(method1, clazz));
+    }
+
+    @Test
+    public void test_dynamic() {
+        ICar car = new Car();
+        AdvisedSupport advisedSupport = new AdvisedSupport();
+        advisedSupport.setTargetSource(new TargetSource(car));
+        advisedSupport.setMethodInterceptor(new CarInterceptor());
+        advisedSupport.setMethodMatcher(new AspectJExpressionPointcut("execution(* cn.tinyspring.springframework.test.bean.ICar.*(..))"));
+
+        ICar proxy = (ICar) new JdkDynamicAopProxy(advisedSupport).getProxy();
+        System.out.println(proxy.queryCar());
+
+        ICar proxy1 = (ICar) new Cglib2AopProxy(advisedSupport).getProxy();
+        System.out.println(proxy1.register("helgfd"));
     }
 }

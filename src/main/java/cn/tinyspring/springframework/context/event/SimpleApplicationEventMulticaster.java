@@ -10,6 +10,11 @@ public class SimpleApplicationEventMulticaster extends AbstractApplicationEventM
     public SimpleApplicationEventMulticaster(BeanFactory beanFactory) {
         setBeanFactory(beanFactory);
     }
+
+    /**
+     * 后面可以考虑使用线程池进行异步监听执行
+     * @param event
+     */
     @SuppressWarnings("unchecked")
     @Override
     public void multicastEvent(ApplicationEvent event) {
