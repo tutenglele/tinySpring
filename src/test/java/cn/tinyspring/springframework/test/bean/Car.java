@@ -3,6 +3,7 @@ package cn.tinyspring.springframework.test.bean;
 import java.util.Random;
 
 public class Car implements ICar{
+    private String token;
     @Override
     public String queryCar() {
         try {
@@ -11,7 +12,7 @@ public class Car implements ICar{
             e.printStackTrace();
         }
 
-        return "car]]]]";
+        return "car]]]]" + token;
     }
     @Override
     public String register(String carName){

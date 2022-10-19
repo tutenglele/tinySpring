@@ -28,10 +28,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             if(null != bean) {
                 return bean;
             }
+            //实例化Bean
             bean = createBeanInstance(beanDefinition, beanName, args);
 
+            //实例化后判断是否填充属性
+            boolean continueWithPropertyPopulation = applyBeanPostProcessorAfterInstantiation(beanName, bean);
+            if (!continueWithPropertyPopulation) {
+                return bean;
+            }
+            // 在设置 Bean 属性之前，允许 BeanPostProcessor 修改属性值
             applyBeanPostProcessorsBeforeApplyingPropertyValues(beanName, bean, beanDefinition);
-
             //bean实例创造出来后填充属性
             applyPropertyValues(beanName, bean, beanDefinition);
             // 执行 Bean 的初始化方法和 BeanPostProcessor 的前置和后置处理方法
@@ -48,6 +54,26 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             registerSingleton(beanName, bean);
         }
         return bean;
+    }
+
+    /**
+     * Bean 实例化后对于返回 false 的对象，不在执行后续设置 Bean 对象属性的操作
+     * @param beanName
+     * @param bean
+     * @return
+     */
+    private boolean applyBeanPostProcessorAfterInstantiation(String beanName, Object bean) {
+        boolean continueWithPropertyPopulation = true;
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                InstantiationAwareBeanPostProcessor processor = (InstantiationAwareBeanPostProcessor) beanPostProcessor;
+                if (!processor.postProcessorAfterInstantiation(bean, beanName)) {
+                    continueWithPropertyPopulation = false;
+                    break;
+                }
+            }
+        }
+        return continueWithPropertyPopulation;
     }
 
     /**
@@ -69,6 +95,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         }
     }
 
+    /**
+     * 在实例化前判断是否返回代理对象
+     * @param beanName
+     * @param beanDefinition
+     * @return
+     */
     protected Object resolveBeforeInstantiation(String beanName, BeanDefinition beanDefinition) {
         Object bean = applyBeanPostProcessorsBeforeInstantiation(beanDefinition.getBeanClass(), beanDefinition.getDestroyMethodName());
         if (null != bean) {
@@ -77,9 +109,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         return bean;
     }
 
+    /**
+     * 在Bean实例化前，beanPostProcessor类执行InstantiationAwareBeanPostProcessor中的实例化前方法
+     * @param beanClass
+     * @param beanName
+     * @return
+     */
     protected Object applyBeanPostProcessorsBeforeInstantiation(Class<?> beanClass, String beanName) {
         for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
             if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                //执行代理对象实例化，但是脱离了bean的生命周期
                 Object res = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).postProcessorBeforeInstantiation(beanClass, beanName);
                 if (null != res) {
                     return res;
@@ -89,6 +128,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         return null;
     }
 
+    /**
+     * 具体注册DisposableBean
+     * @param beanName
+     * @param bean
+     * @param beanDefinition
+     */
     private void registerDisposableBeanIfNecessary(String beanName, Object bean, BeanDefinition beanDefinition) {
         //非singleton类型的bean不执行销毁方法
         if (!beanDefinition.isSingleton()) {
@@ -99,6 +144,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         }
     }
 
+    /**
+     * 填充Bean的属性值
+     * @param beanName
+     * @param bean
+     * @param beanDefinition
+     */
     protected void applyPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
         PropertyValues propertyValues = beanDefinition.getPropertyValues();
         for (PropertyValue propertyValue : propertyValues.getPropertyValues()) {
@@ -113,6 +164,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         }
     }
 
+    /**
+     * 采用反射的方式(Cglib和JDK）的方式实例化bean
+     * @param beanDefinition
+     * @param beanName
+     * @param args
+     * @return
+     */
     protected Object createBeanInstance(BeanDefinition beanDefinition, String beanName, Object[] args) {
         Constructor<?> constructorToUse = null;
         Class<?> beanClass = beanDefinition.getBeanClass();
@@ -135,6 +193,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         this.instantiationStrategy = instantiationStrategy;
     }
 
+    /**
+     * 初始化Bean， 1.感知aware对象， 2. BeanPostProcessor Before处理 3。 init_method方法 4.after处理
+     * @param beanName
+     * @param bean
+     * @param beanDefinition
+     * @return
+     */
     private Object initializeBean(String beanName, Object bean, BeanDefinition beanDefinition) {
         // invokeAwareMethods
         if(bean instanceof Aware) {
@@ -163,6 +228,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
         return wrappedBean;
     }
 
+    /**
+     * 执行init_method方法，包括接口实现和反射执行
+     * @param beanName
+     * @param wrappedBean
+     * @param beanDefinition
+     * @throws Exception
+     */
     private void invokeInitMethods(String beanName, Object wrappedBean, BeanDefinition beanDefinition) throws Exception {
         //1.接口实现
         if(wrappedBean instanceof InitializingBean) {
@@ -196,6 +268,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName) throws BeansException {
         Object res = existingBean;
         for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            //同时也加入了aop代理对象的创建
             Object current = beanPostProcessor.postProcessorAfterInitialization(res, beanName);
             if (null == current) {
                 return res;

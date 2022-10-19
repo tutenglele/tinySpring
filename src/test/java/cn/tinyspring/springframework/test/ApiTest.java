@@ -279,4 +279,10 @@ public class ApiTest {
         UserService userService = applicationContext.getBean("userService", UserService.class);
         userService.queryUserInfo();
     }
+    @Test
+    public void test_proxy_property() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-autoproxy-property.xml");
+        ICar car = applicationContext.getBean("car", ICar.class);
+        System.out.println(car.queryCar());
+    }
 }
