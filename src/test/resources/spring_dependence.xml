@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+
+    <bean id="husband" class="cn.tinyspring.springframework.test.dependence.Husband">
+        <property name="wife" ref="wife"/>
+    </bean>
+
+    <bean id="wife" class="cn.tinyspring.springframework.test.dependence.Wife">
+        <property name="husband" ref="husband"/>
+        <property name="mother" ref="husbandMother"/>
+    </bean>
+
+    <bean id="husbandMother" class="cn.tinyspring.springframework.test.dependence.HusbandMother"/>
+
+    <!-- AOP 配置，验证三级缓存 -->
+    <bean class="cn.tinyspring.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+    <bean id="beforeAdvice" class="cn.tinyspring.springframework.test.dependence.SpouseAdvice"/>
+
+    <bean id="methodInterceptor" class="cn.tinyspring.springframework.aop.framework.adapter.MethodBeforeAdviceInterceptor">
+        <property name="advice" ref="beforeAdvice"/>
+    </bean>
+
+    <bean id="pointcutAdvisor" class="cn.tinyspring.springframework.aop.aspectj.AspectJExpressionPointcutAdvisor">
+        <property name="expression" value="execution(* cn.tinyspring.springframework.test.dependence.Wife.*(..))"/>
+        <property name="advice" ref="methodInterceptor"/>
+    </bean>
+
+</beans>

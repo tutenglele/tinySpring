@@ -18,18 +18,35 @@ import java.lang.reflect.Method;
  * 进行属性自动中注入
  */
 public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
-    private InstantiationStrategy instantiationStrategy = new CglibSubclassingInstantiationStrategy();
+//    private InstantiationStrategy instantiationStrategy = new CglibSubclassingInstantiationStrategy();
+    /**
+     * 在实例类的时候和代理时如果都用cglib会报错，代理类如果没有实现接口用jDK也会报错
+     * jdk动态代理，必须定义一个接口，和实现这个接口的类，才能代理这个类
+     */
+    private InstantiationStrategy instantiationStrategy = new SimpleInstantiationStrategy();
     @Override
     protected Object createBean(String beanName, BeanDefinition beanDefinition, Object... args) throws BeansException {
+        //判断是否返回代理Bean对象
+        Object bean = resolveBeforeInstantiation(beanName, beanDefinition);
+        if(null != bean) {
+            return bean;
+        }
+        return doCreateBean(beanName, beanDefinition, args);
+    }
+
+    protected Object doCreateBean(String beanName, BeanDefinition beanDefinition, Object[] args) {
         Object bean = null;
         try {
-            //判断是否返回代理Bean对象
-            bean = resolveBeforeInstantiation(beanName, beanDefinition);
-            if(null != bean) {
-                return bean;
-            }
+
             //实例化Bean
             bean = createBeanInstance(beanDefinition, beanName, args);
+
+            //处理循环依赖，将实例化的bean提前放进缓存中，暴漏出来
+            if (beanDefinition.isSingleton()) {
+                Object finalBean = bean;
+                addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, beanDefinition, finalBean));
+            }
+
 
             //实例化后判断是否填充属性
             boolean continueWithPropertyPopulation = applyBeanPostProcessorAfterInstantiation(beanName, bean);
@@ -43,17 +60,34 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
             // 执行 Bean 的初始化方法和 BeanPostProcessor 的前置和后置处理方法
             bean = initializeBean(beanName, bean, beanDefinition);
         } catch (Exception e) {
-            throw new BeansException("Instantiation of bean failed", e);
+            throw new BeansException("Instantiation of bean failed " + beanName, e );
         }
 
         //注册实现了DisposableBean接口的Bean对象,创建 Bean 对象的实例的时候，需要把销毁方法保存起来，方便后续执行销毁动作进行调用。
         registerDisposableBeanIfNecessary(beanName, bean, beanDefinition);
         //单例模式和原型模式的区别就在于是否存放到内存中，如果是原型模式那么就不会存放到内存中，每次获取都重新创建对象，另外非 Singleton 类型的 Bean 不需要执行销毁方法。
         //一旦bean初始化，就加载进容器里面，方便下次使用,新增判断单例模式
+        //进一步在三级循环依赖中进行判断
+        Object exposedObject = bean;
         if (beanDefinition.isSingleton()) {
-            registerSingleton(beanName, bean);
+            //获取代理对象
+            exposedObject = getSingleton(beanName);
+            registerSingleton(beanName, exposedObject);
         }
-        return bean;
+        return exposedObject;
+    }
+
+    protected Object getEarlyBeanReference(String beanName, BeanDefinition beanDefinition, Object bean) {
+        Object exposedObject = bean;
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+                exposedObject = ((InstantiationAwareBeanPostProcessor) beanPostProcessor).getEarlyBeanReference(exposedObject, beanName);
+                if (exposedObject == null) {
+                    return exposedObject;
+                }
+            }
+        }
+        return exposedObject;
     }
 
     /**
@@ -151,17 +185,22 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
      * @param beanDefinition
      */
     protected void applyPropertyValues(String beanName, Object bean, BeanDefinition beanDefinition) {
-        PropertyValues propertyValues = beanDefinition.getPropertyValues();
-        for (PropertyValue propertyValue : propertyValues.getPropertyValues()) {
-            String name = propertyValue.getName();
-            Object value = propertyValue.getValue();
-            if(value instanceof BeanReference) {
-                //A对象依赖B对象，先获取B对象的实例化
-                BeanReference beanReference = (BeanReference) value;
-                value = getBean(beanReference.getName());
+        try {
+            PropertyValues propertyValues = beanDefinition.getPropertyValues();
+            for (PropertyValue propertyValue : propertyValues.getPropertyValues()) {
+                String name = propertyValue.getName();
+                Object value = propertyValue.getValue();
+                if(value instanceof BeanReference) {
+                    //A对象依赖B对象，先获取B对象的实例化
+                    BeanReference beanReference = (BeanReference) value;
+                    value = getBean(beanReference.getName());
+                }
+                BeanUtil.setFieldValue(bean, name, value);
             }
-            BeanUtil.setFieldValue(bean, name, value);
+        } catch (Exception e) {
+            throw new BeansException("Error setting property values：" + beanDefinition.getBeanClass().getName() + beanDefinition.getPropertyValues().getPropertyValues()[0].getName());
         }
+
     }
 
     /**

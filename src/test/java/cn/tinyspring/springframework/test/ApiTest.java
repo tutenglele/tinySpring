@@ -21,6 +21,8 @@ import cn.tinyspring.springframework.core.io.Resource;
 import cn.tinyspring.springframework.test.bean.*;
 import cn.tinyspring.springframework.test.common.MyBeanFactoryPostProcessor;
 import cn.tinyspring.springframework.test.common.MyBeanPostProcessor;
+import cn.tinyspring.springframework.test.dependence.Husband;
+import cn.tinyspring.springframework.test.dependence.Wife;
 import cn.tinyspring.springframework.test.event.CustomEvent;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -247,7 +249,7 @@ public class ApiTest {
         advisedSupport.setMethodInterceptor(new CarInterceptor());
         advisedSupport.setMethodMatcher(new AspectJExpressionPointcut("execution(* cn.tinyspring.springframework.test.bean.ICar.*(..))"));
 
-        ICar proxy = (ICar) new JdkDynamicAopProxy(advisedSupport).getProxy();
+        ICar proxy = (ICar) new Cglib2AopProxy(advisedSupport).getProxy();
         System.out.println(proxy.queryCar());
 
         ICar proxy1 = (ICar) new Cglib2AopProxy(advisedSupport).getProxy();
@@ -259,6 +261,7 @@ public class ApiTest {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring.xml");
         ICar car = applicationContext.getBean("car", ICar.class);
 //        ((Car) car).queryCar();
+        System.out.println(car.getClass());
         System.out.println(applicationContext.getBean("car").getClass());
         System.out.println("测试结果：" + car.queryCar());
     }
@@ -284,5 +287,13 @@ public class ApiTest {
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring-autoproxy-property.xml");
         ICar car = applicationContext.getBean("car", ICar.class);
         System.out.println(car.queryCar());
+    }
+    @Test
+    public void test_circular() {
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("classpath:spring_dependence.xml");
+        Husband husband = applicationContext.getBean("husband", Husband.class);
+        Wife wife = applicationContext.getBean("wife", Wife.class);
+        System.out.println(husband.querywife());
+        System.out.println(wife.queryHusband());
     }
 }
