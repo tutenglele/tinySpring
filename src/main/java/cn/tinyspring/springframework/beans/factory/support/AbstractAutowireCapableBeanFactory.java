@@ -2,14 +2,17 @@ package cn.tinyspring.springframework.beans.factory.support;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.TypeUtil;
 import cn.tinyspring.springframework.beans.BeansException;
 import cn.tinyspring.springframework.beans.PropertyValue;
 import cn.tinyspring.springframework.beans.PropertyValues;
 import cn.tinyspring.springframework.beans.factory.*;
 import cn.tinyspring.springframework.beans.factory.config.*;
+import cn.tinyspring.springframework.core.convert.ConversionService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * 实现bean的实例化，暂时只能解决构造函数无参的情况下,解决有参数：1.如何把有参数传递进容器，2.如何实例化有参数的bean
@@ -46,7 +49,6 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
                 Object finalBean = bean;
                 addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, beanDefinition, finalBean));
             }
-
 
             //实例化后判断是否填充属性
             boolean continueWithPropertyPopulation = applyBeanPostProcessorAfterInstantiation(beanName, bean);
@@ -194,6 +196,17 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
                     //A对象依赖B对象，先获取B对象的实例化
                     BeanReference beanReference = (BeanReference) value;
                     value = getBean(beanReference.getName());
+                } else {
+                    //添加属性转换操作
+                    Class<?> sourceType = value.getClass();
+                    Class<?> targetType = (Class<?>) TypeUtil.getFieldType(bean.getClass(), name);
+
+                    ConversionService service = getConversionService();
+                    if(service != null) {
+                        if (service.canConvert(sourceType, targetType)) {
+                            value = service.convert(value, targetType);
+                        }
+                    }
                 }
                 BeanUtil.setFieldValue(bean, name, value);
             }

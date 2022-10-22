@@ -6,6 +6,7 @@ import cn.tinyspring.springframework.beans.factory.FactoryBean;
 import cn.tinyspring.springframework.beans.factory.config.BeanDefinition;
 import cn.tinyspring.springframework.beans.factory.config.BeanPostProcessor;
 import cn.tinyspring.springframework.beans.factory.config.ConfigurableBeanFactory;
+import cn.tinyspring.springframework.core.convert.ConversionService;
 import cn.tinyspring.springframework.utils.ClassUtils;
 import cn.tinyspring.springframework.utils.StringValueResolver;
 
@@ -27,6 +28,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
     private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
     private final List<StringValueResolver> embeddingValueResolvers = new ArrayList<>();
+
+    private ConversionService conversionService;
 
     /**
      * 对单例 Bean 对象的获取,在获取不到时需要拿到 Bean 的定义做相应 Bean 实例化操作。
@@ -93,6 +96,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
             result = resolver.resolverStringValue(result);
         }
         return result;
+    }
+
+    @Override
+    public void setConversionService(ConversionService conversionService) {
+        this.conversionService = conversionService;
+    }
+
+    @Override
+    public ConversionService getConversionService() {
+        return conversionService;
     }
 
     @Override

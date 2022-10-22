@@ -1,6 +1,7 @@
 package cn.tinyspring.springframework.beans.factory.annotation;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.TypeUtil;
 import cn.tinyspring.springframework.beans.BeansException;
 import cn.tinyspring.springframework.beans.PropertyValues;
 import cn.tinyspring.springframework.beans.factory.BeanFactory;
@@ -8,9 +9,11 @@ import cn.tinyspring.springframework.beans.factory.BeanFactoryAware;
 import cn.tinyspring.springframework.beans.factory.ConfigurableListableBeanFactory;
 import cn.tinyspring.springframework.beans.factory.config.ConfigurableBeanFactory;
 import cn.tinyspring.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import cn.tinyspring.springframework.core.convert.ConversionService;
 import cn.tinyspring.springframework.utils.ClassUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 
 /**
  * 实现接口 InstantiationAwareBeanPostProcessor 的一个用于在 Bean 对象实例化完成后，
@@ -44,8 +47,18 @@ public class AutowiredAnnotationBeanPostProcessor implements InstantiationAwareB
         for (Field field : declaredFields) {
             Value valueAnnotation = field.getAnnotation(Value.class);
             if (null != valueAnnotation) {
-                String value = valueAnnotation.value();
-                value = beanFactory.resolveEmbeddingValue(value);
+                Object value = valueAnnotation.value();
+                value = beanFactory.resolveEmbeddingValue((String) value);
+                //进行属性填充
+                Class<?> sourceType = value.getClass();
+                Class<?> targetType = (Class<?>) TypeUtil.getType(field);
+                ConversionService service = beanFactory.getConversionService();
+                if (service != null) {
+                    if (service.canConvert(sourceType, targetType)) {
+                        value = service.convert(value, targetType);
+                    }
+                }
+
                 BeanUtil.setFieldValue(bean, field.getName(), value);
             }
         }

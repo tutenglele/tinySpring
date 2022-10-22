@@ -1,6 +1,7 @@
 package cn.tinyspring.springframework.beans.factory.config;
 
 import cn.tinyspring.springframework.beans.factory.HierarchicalBeanFactory;
+import cn.tinyspring.springframework.core.convert.ConversionService;
 import cn.tinyspring.springframework.utils.StringValueResolver;
 
 /**
@@ -20,4 +21,8 @@ public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, Single
     void addEmbeddedValueResolver(StringValueResolver valueResolver);
 
     String resolveEmbeddingValue(String value);
+
+    void setConversionService(ConversionService conversionService);
+
+    ConversionService getConversionService();
 }

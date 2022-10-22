@@ -296,4 +296,14 @@ public class ApiTest {
         System.out.println(husband.querywife());
         System.out.println(wife.queryHusband());
     }
+
+    @Test
+    public void test_MyThreadPool() throws InterruptedException {
+        MyThreadPool myThreadPool = new MyThreadPool(3, 5);
+        for (int i = 0; i < 50; i++) {
+            myThreadPool.exeute(() -> System.out.println(Thread.currentThread().getName() + " : helloworld"));
+        }
+        Thread.sleep(9000);
+        myThreadPool.shutdown();
+    }
 }
